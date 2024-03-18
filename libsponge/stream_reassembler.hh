@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <string>
+#include <set>
 
 //! \brief A class that assembles a series of excerpts from a byte stream (possibly out of order,
 //! possibly overlapping) into an in-order byte stream.
@@ -12,8 +13,25 @@ class StreamReassembler {
   private:
     // Your code here -- add private members as necessary.
 
+    struct Seg {
+      size_t _l, _r;
+      std::string _seg;
+      Seg(size_t l = 0, size_t r = 0, std::string seg = "") : _l(l), _r(r), _seg(seg) {}
+      bool operator<(const Seg &s) const {
+        if (_l < s._l) return true;
+        if (_l > s._l) return false;
+        return _r < s._r;
+      }
+    };
+  
     ByteStream _output;  //!< The reassembled in-order byte stream
     size_t _capacity;    //!< The maximum number of bytes
+    size_t _index;
+    size_t _unreassembled_bytes;
+    bool _eof;
+    std::set<Seg> _valid_seg;
+
+    void update_unreassembled_data(const std::string &data, const size_t index, const size_t l, const size_t r);
 
   public:
     //! \brief Construct a `StreamReassembler` that will store up to `capacity` bytes.
@@ -49,3 +67,4 @@ class StreamReassembler {
 };
 
 #endif  // SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH
+
